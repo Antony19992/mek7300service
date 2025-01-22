@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.IO.Ports;
 
 namespace MEK7300service
@@ -31,11 +32,11 @@ namespace MEK7300service
                     try
                     {
                         _serialPort.Open();
-                        Console.WriteLine("Porta serial aberta.");
+                        WriteLog("Porta serial aberta com sucesso.");
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Erro ao abrir porta: {ex.Message}");
+                        WriteLog($"Erro ao abrir porta: {ex.Message}");
                     }
                 }
             }
@@ -45,14 +46,20 @@ namespace MEK7300service
         {
             try
             {
-                string data = _serialPort.ReadExisting();
-                Console.WriteLine($"Dados recebidos: {data}");
+                string data = string.Empty;
+
+                while (_serialPort.BytesToRead > 0)
+                {
+                    data += _serialPort.ReadExisting();
+                }
+
+                WriteLog($"Dados recebidos: {data}");
                 ProcessFile processFile = new ProcessFile();
                 processFile.CreateInitializationFile(data);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao processar dados recebidos: {ex.Message}");
+                WriteLog($"Erro ao processar dados recebidos: {ex.Message}");
             }
         }
 
@@ -63,6 +70,15 @@ namespace MEK7300service
                 _serialPort.Close();
             }
             _serialPort.Dispose();
+        }
+
+        public static void WriteLog(string message)
+        {
+            string logFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "service.log");
+            using (StreamWriter writer = new StreamWriter(logFile, true))
+            {
+                writer.WriteLine($"{DateTime.Now}: {message}");
+            }
         }
     }
 }

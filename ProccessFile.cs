@@ -14,7 +14,7 @@ namespace MEK7300service
                 // Verifica se os dados têm o tamanho esperado
                 if (dataSplited.Length < 23)
                 {
-                    Console.WriteLine("Erro: Dados incompletos recebidos.");
+                    WriteLog("Erro: Dados incompletos recebidos.");
                     return;
                 }
 
@@ -51,7 +51,7 @@ namespace MEK7300service
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao processar os dados: {ex.Message}");
+                WriteLog($"Erro ao processar os dados: {ex.Message}");
             }
         }
 
@@ -87,12 +87,20 @@ namespace MEK7300service
                     writer.WriteLine($"PCT: {formatedFile.PCT}");
                     writer.WriteLine($"MPV: {formatedFile.MPV}");
                 }
-
-                Console.WriteLine($"Arquivo '{formatedFile.FileName}.txt' criado com sucesso.");
+                WriteLog($"Arquivo '{formatedFile.FileName}.txt' criado com sucesso.");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro ao criar o arquivo: {ex.Message}");
+                WriteLog($"Erro ao criar o arquivo: {ex.Message}");
+            }
+        }
+
+        public static void WriteLog(string message)
+        {
+            string logFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "service.log");
+            using (StreamWriter writer = new StreamWriter(logFile, true))
+            {
+                writer.WriteLine($"{DateTime.Now}: {message}");
             }
         }
     }
