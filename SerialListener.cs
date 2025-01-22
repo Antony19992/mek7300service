@@ -3,94 +3,66 @@ using System.IO.Ports;
 
 namespace MEK7300service
 {
-    public class SerialListener
+    public class SerialListener : IDisposable
     {
-        static SerialPort serialPort;
-        static string dataReceived = "";  // Variável para armazenar os dados recebidos
+        private readonly SerialPort _serialPort;
+        private readonly object _lock = new object();
 
-        public static string listener()
+        public bool IsPortOpen => _serialPort.IsOpen;
+
+        public SerialListener(string portName, int baudRate)
         {
-            // Inicializa a porta serial
-            serialPort = new SerialPort
+            _serialPort = new SerialPort(portName, baudRate, Parity.None, 8, StopBits.One)
             {
-                PortName = "COM4",
-                BaudRate = 9600,
-                DataBits = 8,
-                Parity = Parity.None,
-                StopBits = StopBits.One,
-                Handshake = Handshake.None,
-                ReadBufferSize = 4096,
-                WriteBufferSize = 2048,
                 ReadTimeout = 1000,
-                WriteTimeout = 1000
+                WriteTimeout = 1000,
+                ReadBufferSize = 4096,
+                WriteBufferSize = 2048
             };
+            _serialPort.DataReceived += SerialPort_DataReceived;
+        }
 
+        public void OpenPort()
+        {
+            lock (_lock)
+            {
+                if (!_serialPort.IsOpen)
+                {
+                    try
+                    {
+                        _serialPort.Open();
+                        Console.WriteLine("Porta serial aberta.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Erro ao abrir porta: {ex.Message}");
+                    }
+                }
+            }
+        }
+
+        private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        {
             try
             {
-                // Associa o evento DataReceived
-                serialPort.DataReceived += new SerialDataReceivedEventHandler(SerialPort_DataReceived);
-
-                // Abre a porta serial
-                serialPort.Open();
-                Console.WriteLine("Porta serial aberta. Aguardando dados...");
-
-                Console.WriteLine("Pressione 'q' para sair.");
-                while (Console.ReadKey(true).Key != ConsoleKey.Q) { }
-
-                // Retorna os dados recebidos ao final do listener
-                return dataReceived;
+                string data = _serialPort.ReadExisting();
+                Console.WriteLine($"Dados recebidos: {data}");
+                ProcessFile processFile = new ProcessFile();
+                processFile.CreateInitializationFile(data);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Erro: {ex.Message}");
-                return string.Empty; // Caso haja erro, retorna uma string vazia
-            }
-            finally
-            {
-                // Fecha a porta serial quando terminar
-                if (serialPort.IsOpen)
-                {
-                    serialPort.Close();
-                    Console.WriteLine("Porta serial fechada.");
-                }
+                Console.WriteLine($"Erro ao processar dados recebidos: {ex.Message}");
             }
         }
 
-        private static void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
+        public void Dispose()
         {
-            try
+            if (_serialPort.IsOpen)
             {
-                string data = "";
-
-                // Lê os dados disponíveis na porta serial
-                while (serialPort.BytesToRead > 0)
-                {
-                    data += serialPort.ReadExisting(); // Lê os dados recebidos
-                }
-
-                Console.WriteLine($"Dados recebidos:\n{data}");
-
-                // Processa os dados e armazena na variável compartilhada
-                dataReceived = ProcessData(data);
+                _serialPort.Close();
             }
-            catch (TimeoutException)
-            {
-                Console.WriteLine("Timeout ao ler os dados.");
-            }
-        }
-
-        private static string ProcessData(string data)
-        {
-            string dataExam = "";
-            string[] lines = data.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (string line in lines)
-            {
-                dataExam += line.Trim() + ";"; // Adiciona a linha processada
-                Console.WriteLine($"Linha processada: {line}");
-            }
-
-            return dataExam;
+            _serialPort.Dispose();
         }
     }
 }
