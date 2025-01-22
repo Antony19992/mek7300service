@@ -1,0 +1,7 @@
+F:\SQUAD-ANDREY\MEK7300service\obj\Debug\MEK7300service.csproj.AssemblyReference.cache
+F:\SQUAD-ANDREY\MEK7300service\obj\Debug\MEK7300service.csproj.CoreCompileInputs.cache
+F:\SQUAD-ANDREY\MEK7300service\bin\Debug\MEK7300service.exe.config
+F:\SQUAD-ANDREY\MEK7300service\bin\Debug\MEK7300service.exe
+F:\SQUAD-ANDREY\MEK7300service\bin\Debug\MEK7300service.pdb
+F:\SQUAD-ANDREY\MEK7300service\obj\Debug\MEK7300service.exe
+F:\SQUAD-ANDREY\MEK7300service\obj\Debug\MEK7300service.pdb
