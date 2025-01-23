@@ -1,5 +1,8 @@
 ﻿using System;
+using System.IO;
+using System.Net.Http;
 using System.ServiceProcess;
+using System.Text;
 using System.Threading;
 
 namespace MEK7300service
@@ -7,6 +10,7 @@ namespace MEK7300service
     public partial class Service1 : ServiceBase
     {
         private Timer _timer;
+        private Timer _timerSendFile;
         private SerialListener _serialListener;
 
         public Service1()
@@ -18,12 +22,14 @@ namespace MEK7300service
         {
             _serialListener = new SerialListener("COM4", 9600);
             _timer = new Timer(CheckPortStatus, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+            _timerSendFile = new Timer(SendFile, null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
         }
 
         protected override void OnStop()
         {
             _serialListener.Dispose();
             _timer.Dispose();
+            _timerSendFile.Dispose();
         }
 
         private void CheckPortStatus(object state)
@@ -31,6 +37,109 @@ namespace MEK7300service
             if (!_serialListener.IsPortOpen)
             {
                 _serialListener.OpenPort();
+            }
+        }
+
+        private async void SendFile(object state)
+        {
+            string currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            string sourceDirectory = Path.Combine(currentDirectory, "gerados");
+            string destinationDirectory = Path.Combine(currentDirectory, "processados");
+            string webhookUrl = "https://webhook.site/5072b662-3934-4357-bfef-1e0a0725a503";
+
+            try
+            {
+                // Verifica se o diretório de origem existe
+                if (!Directory.Exists(sourceDirectory))
+                {
+                    Directory.CreateDirectory(sourceDirectory);
+                    WriteLog("Diretório 'gerados' não existia e foi criado.");
+                    return;
+                }
+
+                // Cria o diretório de destino 'processados' se não existir
+                if (!Directory.Exists(destinationDirectory))
+                {
+                    Directory.CreateDirectory(destinationDirectory);
+                    WriteLog("Diretório 'processados' criado.");
+                }
+
+                // Lista todos os arquivos no diretório de origem
+                string[] files = Directory.GetFiles(sourceDirectory);
+
+                if (files.Length == 0)
+                {
+                    WriteLog("Nenhum arquivo encontrado no diretório 'gerados'.");
+                    return;
+                }
+
+                // Envia os dados dos arquivos para o webhook e move os arquivos
+                using (HttpClient client = new HttpClient())
+                {
+                    foreach (string file in files)
+                    {
+                        try
+                        {
+                            WriteLog($"Arquivo encontrado: {file}");
+
+                            // Prepara os dados para enviar ao webhook
+                            string fileName = Path.GetFileName(file);
+                            string fileContent = File.ReadAllText(file);
+
+                            var payload = new
+                            {
+                                FileName = fileName,
+                                Content = fileContent
+                            };
+
+                            string jsonPayload = System.Text.Json.JsonSerializer.Serialize(payload);
+                            StringContent httpContent = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
+
+                            // Envia para o webhook
+                            HttpResponseMessage response = await client.PostAsync(webhookUrl, httpContent);
+
+                            if (response.IsSuccessStatusCode)
+                            {
+                                WriteLog($"Dados enviados ao webhook para o arquivo: {fileName}");
+
+                                // Define o caminho de destino
+                                string destFile = Path.Combine(destinationDirectory, fileName);
+
+                                // Move o arquivo
+                                if (!File.Exists(destFile))
+                                {
+                                    File.Move(file, destFile);
+                                    WriteLog($"Arquivo movido para: {destFile}");
+                                }
+                                else
+                                {
+                                    WriteLog($"O arquivo {fileName} já existe no destino. Não foi movido.");
+                                }
+                            }
+                            else
+                            {
+                                WriteLog($"Falha ao enviar dados do arquivo {fileName} ao webhook: {response.StatusCode}");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            WriteLog($"Erro ao processar o arquivo {file}: {ex.Message}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                WriteLog($"Erro ao processar arquivos: {ex.Message}");
+            }
+        }
+
+        public static void WriteLog(string message)
+        {
+            string logFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "service.log");
+            using (StreamWriter writer = new StreamWriter(logFile, true))
+            {
+                writer.WriteLine($"{DateTime.Now}: {message}");
             }
         }
     }

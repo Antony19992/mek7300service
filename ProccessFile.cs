@@ -65,7 +65,14 @@ namespace MEK7300service
         {
             try
             {
-                string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"{formatedFile.FileName}.txt");
+                string directoryPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "gerados");
+
+                if (!Directory.Exists(directoryPath))
+                {
+                    Directory.CreateDirectory(directoryPath);
+                }
+
+                string filePath = Path.Combine(directoryPath, $"{formatedFile.FileName}.txt");
 
                 WriteLog($"FilePath: {filePath}");
 
@@ -95,13 +102,14 @@ namespace MEK7300service
                     writer.WriteLine($"MPV: {formatedFile.MPV}");
                     writer.WriteLine($"PDW: {formatedFile.PDW}");
                 }
-                WriteLog($"Arquivo '{formatedFile.FileName}.txt' criado com sucesso.");
+                WriteLog($"Arquivo '{formatedFile.FileName}.txt' criado com sucesso na pasta 'gerados'.");
             }
             catch (Exception ex)
             {
                 WriteLog($"Erro ao criar o arquivo: {ex.Message}");
             }
         }
+
 
         public static void WriteLog(string message)
         {
