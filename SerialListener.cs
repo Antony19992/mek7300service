@@ -57,7 +57,8 @@ namespace MEK7300service
                 WriteLog($"Dados recebidos: {data}");
                 dataReceived += data;
 
-                if (dataReceived.Split(';').Length >= 23)
+
+                if (dataReceived.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries).Length >= 23)
                 {
                     WriteLog($"Dados dataReceived dentro do if: {dataReceived}");
                     ProcessFile processFile = new ProcessFile();

@@ -9,7 +9,7 @@ namespace MEK7300service
         {
             try
             {
-                string[] dataSplited = dataReceived.Split(';');
+                string[] dataSplited = dataReceived.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
                 // Verifica se os dados têm o tamanho esperado
                 if (dataSplited.Length < 23)
