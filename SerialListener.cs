@@ -8,6 +8,7 @@ namespace MEK7300service
     {
         private readonly SerialPort _serialPort;
         private readonly object _lock = new object();
+        private string dataReceived = "";
 
         public bool IsPortOpen => _serialPort.IsOpen;
 
@@ -44,7 +45,6 @@ namespace MEK7300service
 
         private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
-            string dataReceived = "";
             try
             {
                 string data = string.Empty;
@@ -59,10 +59,12 @@ namespace MEK7300service
 
                 if (dataReceived.Split(';').Length >= 23)
                 {
+                    WriteLog($"Dados dataReceived dentro do if: {dataReceived}");
                     ProcessFile processFile = new ProcessFile();
                     processFile.CreateInitializationFile(dataReceived);
                     dataReceived = "";
                 }
+                WriteLog($"Dados dataReceived fora do if: {dataReceived}");
             }
             catch (Exception ex)
             {
