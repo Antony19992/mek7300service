@@ -44,6 +44,7 @@ namespace MEK7300service
 
         private void SerialPort_DataReceived(object sender, SerialDataReceivedEventArgs e)
         {
+            string dataReceived = "";
             try
             {
                 string data = string.Empty;
@@ -54,8 +55,14 @@ namespace MEK7300service
                 }
 
                 WriteLog($"Dados recebidos: {data}");
-                ProcessFile processFile = new ProcessFile();
-                processFile.CreateInitializationFile(data);
+                dataReceived += data;
+
+                if (dataReceived.Split(';').Length >= 23)
+                {
+                    ProcessFile processFile = new ProcessFile();
+                    processFile.CreateInitializationFile(dataReceived);
+                    dataReceived = "";
+                }
             }
             catch (Exception ex)
             {
