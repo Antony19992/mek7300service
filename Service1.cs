@@ -49,7 +49,6 @@ namespace MEK7300service
 
             try
             {
-                // Verifica se o diretório de origem existe
                 if (!Directory.Exists(sourceDirectory))
                 {
                     Directory.CreateDirectory(sourceDirectory);
@@ -57,14 +56,12 @@ namespace MEK7300service
                     return;
                 }
 
-                // Cria o diretório de destino 'processados' se não existir
                 if (!Directory.Exists(destinationDirectory))
                 {
                     Directory.CreateDirectory(destinationDirectory);
                     WriteLog("Diretório 'processados' criado.");
                 }
 
-                // Lista todos os arquivos no diretório de origem
                 string[] files = Directory.GetFiles(sourceDirectory);
 
                 if (files.Length == 0)
@@ -73,7 +70,6 @@ namespace MEK7300service
                     return;
                 }
 
-                // Envia os dados dos arquivos para o webhook e move os arquivos
                 using (HttpClient client = new HttpClient())
                 {
                     foreach (string file in files)
@@ -82,7 +78,6 @@ namespace MEK7300service
                         {
                             WriteLog($"Arquivo encontrado: {file}");
 
-                            // Prepara os dados para enviar ao webhook
                             string fileName = Path.GetFileName(file);
                             string fileContent = File.ReadAllText(file);
 
@@ -95,17 +90,14 @@ namespace MEK7300service
                             string jsonPayload = System.Text.Json.JsonSerializer.Serialize(payload);
                             StringContent httpContent = new StringContent(jsonPayload, Encoding.UTF8, "application/json");
 
-                            // Envia para o webhook
                             HttpResponseMessage response = await client.PostAsync(webhookUrl, httpContent);
 
                             if (response.IsSuccessStatusCode)
                             {
                                 WriteLog($"Dados enviados ao webhook para o arquivo: {fileName}");
 
-                                // Define o caminho de destino
                                 string destFile = Path.Combine(destinationDirectory, fileName);
 
-                                // Move o arquivo
                                 if (!File.Exists(destFile))
                                 {
                                     File.Move(file, destFile);
