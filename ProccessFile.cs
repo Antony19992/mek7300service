@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace MEK7300service
@@ -17,6 +18,12 @@ namespace MEK7300service
                     WriteLog("Erro: Dados incompletos recebidos.");
                     return;
                 }
+
+                var list = new List<string>(dataSplited);
+
+                list.RemoveAt(0);
+
+                dataSplited = list.ToArray();
 
                 // Mapeia os dados recebidos para a classe
                 var formatedFile = new FormatedFile
@@ -37,16 +44,15 @@ namespace MEK7300service
                     HGB = dataSplited[13],
                     HCT = dataSplited[14],
                     MCV = dataSplited[15],
-                    PDW = dataSplited[16],
-                    MCH = dataSplited[17],
-                    MCHC = dataSplited[18],
-                    RDW_CV = dataSplited[19],
-                    PLT = dataSplited[20],
-                    PCT = dataSplited[21],
-                    MPV = dataSplited[22]
+                    MCH = dataSplited[16],
+                    MCHC = dataSplited[17],
+                    RDW_CV = dataSplited[18],
+                    PLT = dataSplited[19],
+                    PCT = dataSplited[20],
+                    MPV = dataSplited[21],
+                    PDW = dataSplited[22],
                 };
 
-                // Salva os dados no arquivo
                 SaveToFile(formatedFile);
             }
             catch (Exception ex)
@@ -61,31 +67,33 @@ namespace MEK7300service
             {
                 string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, $"{formatedFile.FileName}.txt");
 
+                WriteLog($"FilePath: {filePath}");
+
                 using (StreamWriter writer = new StreamWriter(filePath))
                 {
                     writer.WriteLine($"FileName: {formatedFile.FileName}");
                     writer.WriteLine($"WBC: {formatedFile.WBC}");
-                    writer.WriteLine($"LY_Percent: {formatedFile.LY_Percent}");
-                    writer.WriteLine($"MO_Percent: {formatedFile.MO_Percent}");
-                    writer.WriteLine($"NE_Percent: {formatedFile.NE_Percent}");
-                    writer.WriteLine($"EO_Percent: {formatedFile.EO_Percent}");
-                    writer.WriteLine($"BA_Percent: {formatedFile.BA_Percent}");
-                    writer.WriteLine($"LY: {formatedFile.LY}");
-                    writer.WriteLine($"MO: {formatedFile.MO}");
                     writer.WriteLine($"NE: {formatedFile.NE}");
+                    writer.WriteLine($"NE_Percent: {formatedFile.NE_Percent}");
+                    writer.WriteLine($"LY: {formatedFile.LY}");
+                    writer.WriteLine($"LY_Percent: {formatedFile.LY_Percent}");
+                    writer.WriteLine($"MO: {formatedFile.MO}");
+                    writer.WriteLine($"MO_Percent: {formatedFile.MO_Percent}");
                     writer.WriteLine($"EO: {formatedFile.EO}");
+                    writer.WriteLine($"EO_Percent: {formatedFile.EO_Percent}");
                     writer.WriteLine($"BA: {formatedFile.BA}");
+                    writer.WriteLine($"BA_Percent: {formatedFile.BA_Percent}");
                     writer.WriteLine($"RBC: {formatedFile.RBC}");
                     writer.WriteLine($"HGB: {formatedFile.HGB}");
                     writer.WriteLine($"HCT: {formatedFile.HCT}");
                     writer.WriteLine($"MCV: {formatedFile.MCV}");
-                    writer.WriteLine($"PDW: {formatedFile.PDW}");
                     writer.WriteLine($"MCH: {formatedFile.MCH}");
                     writer.WriteLine($"MCHC: {formatedFile.MCHC}");
                     writer.WriteLine($"RDW_CV: {formatedFile.RDW_CV}");
                     writer.WriteLine($"PLT: {formatedFile.PLT}");
                     writer.WriteLine($"PCT: {formatedFile.PCT}");
                     writer.WriteLine($"MPV: {formatedFile.MPV}");
+                    writer.WriteLine($"PDW: {formatedFile.PDW}");
                 }
                 WriteLog($"Arquivo '{formatedFile.FileName}.txt' criado com sucesso.");
             }
