@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.ServiceProcess;
 using Microsoft.Extensions.Configuration;
 
@@ -12,9 +11,8 @@ namespace MEK7300service
         /// </summary>
         static void Main()
         {
-            string projectRoot = Directory.GetParent(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.FullName;
             var configuration = new ConfigurationBuilder()
-                .SetBasePath(projectRoot)
+                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                 .Build();
 
