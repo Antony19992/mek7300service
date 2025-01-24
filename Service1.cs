@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.ServiceProcess;
 using System.Text;
 using System.Threading;
+using Microsoft.Extensions.Configuration;
 
 namespace MEK7300service
 {
@@ -12,15 +13,19 @@ namespace MEK7300service
         private Timer _timer;
         private Timer _timerSendFile;
         private SerialListener _serialListener;
+        private readonly ServiceConfig _config;
 
-        public Service1()
+        public Service1(IConfiguration configuration)
         {
+            _config = configuration.GetSection("SerialConfig").Get<ServiceConfig>();
             InitializeComponent();
         }
 
         protected override void OnStart(string[] args)
         {
-            _serialListener = new SerialListener("COM4", 9600);
+            string port = _config.PortName;
+            int baudRate = _config.BaudRate;
+            _serialListener = new SerialListener(port, baudRate);
             _timer = new Timer(CheckPortStatus, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
             _timerSendFile = new Timer(SendFile, null, TimeSpan.Zero, TimeSpan.FromSeconds(30));
         }
@@ -42,10 +47,11 @@ namespace MEK7300service
 
         private async void SendFile(object state)
         {
+            string webHook = _config.Webhook;
             string currentDirectory = AppDomain.CurrentDomain.BaseDirectory;
             string sourceDirectory = Path.Combine(currentDirectory, "gerados");
             string destinationDirectory = Path.Combine(currentDirectory, "processados");
-            string webhookUrl = "https://webhook.site/5072b662-3934-4357-bfef-1e0a0725a503";
+            string webhookUrl = webHook;
 
             try
             {
