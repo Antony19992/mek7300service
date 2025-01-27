@@ -90,7 +90,8 @@ namespace MEK7300service
                             var payload = new
                             {
                                 FileName = fileName,
-                                Content = fileContent
+                                Content = fileContent,
+                                ExamCode = "HEMO"
                             };
 
                             string jsonPayload = System.Text.Json.JsonSerializer.Serialize(payload);
@@ -108,6 +109,7 @@ namespace MEK7300service
                                 {
                                     File.Move(file, destFile);
                                     WriteLog($"Arquivo movido para: {destFile}");
+                                    WriteLog($"{jsonPayload}");
                                 }
                                 else
                                 {
