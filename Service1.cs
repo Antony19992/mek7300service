@@ -99,7 +99,7 @@ namespace MEK7300service
 
                             HttpResponseMessage response = await client.PostAsync(webhookUrl, httpContent);
 
-                            if (response.IsSuccessStatusCode)
+                            if (response.IsSuccessStatusCode && fileName.Length == 17)
                             {
                                 WriteLog($"Dados enviados ao webhook para o arquivo: {fileName}");
 
