@@ -10,4 +10,6 @@
    Execute o comando abaixo para criar o serviço no Windows:
    ```cmd
    sc create mek7300listener binPath= "C:\CAMINHO\PARA\MEK7300service.exe"
-```
+   ```
+
+#### Verifique a criação das pastas 'gerados' e 'processados'
